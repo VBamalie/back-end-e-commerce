@@ -4,50 +4,43 @@ const { Tag, Product, ProductTag } = require('../../models');
 
 // The `/api/tags` endpoint
 
-router.get('/', async (req, res) => {
+router.get('/', (req, res) => {
   // find all tags
   // be sure to include its associated Product data
-  try {
-    const tagData = await Tag.findAll({
-      attributes:{
+  Tag.findAll({
         include:
         [{
           model: Product,
-          // through: ProductTag,
-          // as: "product_info"
+          through: ProductTag,
         }]
       }
-    });
-    res.status(200).json(tagData);
-  } catch(err){
-    res.status(500).json(err)
-  }
+    )
+    .then((tags)=> res.status(200).json(tags))
+    .catch((err)=> res.status(500).json(err))
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', (req, res) => {
   // find a single tag by its `id`
   // be sure to include its associated Product data
-  try{
-    const tagData = await Product.findByPk(req.params.id,
+
+   Tag.findByPk(req.params.id,
       {
-        attributes:{
           include:
-          {
-            model: Product,
-            // through: ProductTag,
-            // as: "product_info"
-          }
-        }
-      });
-      if(!tagData){
-        res.status(404).json({message: "no tags with this id"});
-        return;
+            [{model: Product,
+            through: ProductTag
+            }]
       }
-      res.status(200).json(tagData)
-  } catch(err){
-    res.status(500).json(err)
+      )
+      .then((tags)=>{
+        if(!tags){
+          res.status(404).json({message: "no tags with this id"})
+          return;
+        }
+        else res.status(200).json(tags)
+      })
+      .catch((err)=> res.status(500).json(err))   
   }
-});
+);
 
 router.post('/', async(req, res) => {
   // create a new tag
